@@ -1,0 +1,248 @@
+/*
+ * Every colour comes from VS Code's theme variables, so the panel matches the
+ * user's theme (light, dark, high-contrast) with no detection logic.
+ */
+
+:root {
+  --sev-critical: var(--vscode-errorForeground, #f14c4c);
+  --sev-high: var(--vscode-editorError-foreground, #f14c4c);
+  --sev-medium: var(--vscode-editorWarning-foreground, #cca700);
+  --sev-low: var(--vscode-editorInfo-foreground, #3794ff);
+  --sev-info: var(--vscode-descriptionForeground, #8c8c8c);
+}
+
+body {
+  margin: 0;
+  padding: 16px;
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+  color: var(--vscode-foreground);
+  background: var(--vscode-editor-background);
+}
+
+/* -- summary header -------------------------------------------------------- */
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.grade {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  flex: 0 0 56px;
+  border-radius: 8px;
+  font-size: 28px;
+  font-weight: 700;
+  background: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+}
+
+.grade[data-grade='A'] { background: #2ea043; color: #fff; }
+.grade[data-grade='B'] { background: #3fb950; color: #06240f; }
+.grade[data-grade='C'] { background: #d29922; color: #1f1400; }
+.grade[data-grade='D'] { background: #db6d28; color: #fff; }
+.grade[data-grade='F'] { background: #f85149; color: #fff; }
+
+.headline h1 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.headline p {
+  margin: 0;
+  color: var(--vscode-descriptionForeground);
+  font-size: 12px;
+}
+
+/* -- agent timeline -------------------------------------------------------- */
+
+.timeline {
+  display: flex;
+  gap: 6px;
+  margin: 12px 0;
+  flex-wrap: wrap;
+}
+
+.step {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  text-transform: capitalize;
+  border: 1px solid var(--vscode-panel-border);
+  color: var(--vscode-descriptionForeground);
+}
+
+.step.done {
+  border-color: transparent;
+  background: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+}
+
+.step.active {
+  border-color: var(--vscode-focusBorder);
+  color: var(--vscode-foreground);
+}
+
+/* -- warnings -------------------------------------------------------------- */
+
+.warnings { margin-bottom: 12px; }
+
+.warning {
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border-left: 3px solid var(--sev-medium);
+  background: var(--vscode-inputValidation-warningBackground, transparent);
+  font-size: 12px;
+}
+
+/* -- tabs ------------------------------------------------------------------ */
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.tab {
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  color: var(--vscode-descriptionForeground);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  border-bottom: 2px solid transparent;
+}
+
+.tab.active {
+  color: var(--vscode-foreground);
+  border-bottom-color: var(--vscode-focusBorder);
+}
+
+.tab span {
+  display: inline-block;
+  min-width: 18px;
+  padding: 0 5px;
+  margin-left: 4px;
+  border-radius: 999px;
+  background: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+  font-size: 10px;
+}
+
+/* -- cards ----------------------------------------------------------------- */
+
+.card {
+  padding: 12px;
+  margin-bottom: 10px;
+  border: 1px solid var(--vscode-panel-border);
+  border-left-width: 3px;
+  border-radius: 4px;
+  background: var(--vscode-editorWidget-background);
+}
+
+.card.sev-critical { border-left-color: var(--sev-critical); }
+.card.sev-high { border-left-color: var(--sev-high); }
+.card.sev-medium { border-left-color: var(--sev-medium); }
+.card.sev-low { border-left-color: var(--sev-low); }
+.card.sev-info { border-left-color: var(--sev-info); }
+
+.card-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.card h2 {
+  margin: 0 0 6px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.card p {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.badge {
+  padding: 1px 7px;
+  border-radius: 3px;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  background: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+}
+
+.meta .detector,
+.meta .validated {
+  padding: 0 6px;
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 3px;
+}
+
+.remediation { color: var(--vscode-foreground); }
+
+.code {
+  max-height: 320px;
+  overflow: auto;
+  padding: 10px;
+  border-radius: 4px;
+  background: var(--vscode-textCodeBlock-background);
+  font-family: var(--vscode-editor-font-family);
+  font-size: var(--vscode-editor-font-size);
+  line-height: 1.45;
+}
+
+/* -- buttons --------------------------------------------------------------- */
+
+button.primary {
+  padding: 5px 12px;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  background: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+}
+
+button.primary:hover { background: var(--vscode-button-hoverBackground); }
+
+button.link {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  color: var(--vscode-textLink-foreground);
+}
+
+button.link:hover { text-decoration: underline; }
+
+.empty {
+  padding: 24px 0;
+  text-align: center;
+  color: var(--vscode-descriptionForeground);
+  font-size: 12px;
+}

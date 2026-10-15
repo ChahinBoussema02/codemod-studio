@@ -1,0 +1,97 @@
+# Local stack: orchestrator + telemetry API + PostgreSQL, with Ollama
+# optionally containerised.
+#
+#   docker compose up --build              # uses Ollama on the host
+#   docker compose --profile ollama up     # also runs Ollama in a container
+#
+# The host-Ollama default is deliberate: most developers already have models
+# pulled locally, and on macOS a containerised Ollama has no GPU access.
+
+name: codemod-studio
+
+services:
+  orchestrator:
+    build:
+      context: ./services/orchestrator
+      target: runtime
+    container_name: cms-orchestrator
+    ports:
+      - "8000:8000"
+    environment:
+      CMS_ENVIRONMENT: ${CMS_ENVIRONMENT:-local}
+      CMS_LOG_LEVEL: ${CMS_LOG_LEVEL:-INFO}
+      CMS_JSON_LOGS: "true"
+      CMS_OLLAMA_BASE_URL: ${CMS_OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      CMS_AUDIT_MODEL: ${CMS_AUDIT_MODEL:-qwen2.5-coder:7b}
+      CMS_REFACTOR_MODEL: ${CMS_REFACTOR_MODEL:-qwen2.5-coder:14b}
+      CMS_TELEMETRY_BASE_URL: http://telemetry-api:8080
+      CMS_TELEMETRY_ENABLED: "true"
+      CMS_OFFLINE_ONLY: "true"
+    extra_hosts:
+      # Lets the container reach a host-installed Ollama on Linux too.
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      telemetry-api:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8000/health',timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
+
+  telemetry-api:
+    build:
+      context: ./services/telemetry-api
+    container_name: cms-telemetry
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ConnectionStrings__Telemetry: "Host=postgres;Port=5432;Database=cms_telemetry;Username=cms;Password=${POSTGRES_PASSWORD:-cms}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: cms-postgres
+    environment:
+      POSTGRES_USER: cms
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cms}
+      POSTGRES_DB: cms_telemetry
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cms -d cms_telemetry"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  # Opt-in: `docker compose --profile ollama up`
+  ollama:
+    image: ollama/ollama:latest
+    container_name: cms-ollama
+    profiles: ["ollama"]
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    # Uncomment on a Linux host with the NVIDIA container toolkit installed.
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
+    restart: unless-stopped
+
+volumes:
+  postgres-data:
+  ollama-models:

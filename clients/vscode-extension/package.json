@@ -1,0 +1,111 @@
+{
+  "name": "codemod-studio",
+  "displayName": "Code Modernization & Security Studio",
+  "description": "Local multi-agent security auditing and semantic refactoring. Your code never leaves your machine.",
+  "version": "0.2.0",
+  "publisher": "codemod-studio",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Linters",
+    "Programming Languages",
+    "Machine Learning"
+  ],
+  "keywords": [
+    "security",
+    "refactoring",
+    "ollama",
+    "local-llm",
+    "static-analysis"
+  ],
+  "main": "./out/extension.js",
+  "activationEvents": [
+    "onLanguage:python"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "codemodStudio.analyzeFile",
+        "title": "Run full agent analysis",
+        "category": "CodeMod Studio",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "codemodStudio.parseFile",
+        "title": "Show complexity metrics",
+        "category": "CodeMod Studio",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "codemodStudio.showResults",
+        "title": "Open results panel",
+        "category": "CodeMod Studio"
+      },
+      {
+        "command": "codemodStudio.checkHealth",
+        "title": "Check orchestrator and Ollama status",
+        "category": "CodeMod Studio"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "codemodStudio.analyzeFile",
+          "when": "resourceLangId == python",
+          "group": "navigation"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "CodeMod Studio",
+      "properties": {
+        "codemodStudio.orchestratorUrl": {
+          "type": "string",
+          "default": "http://localhost:8000",
+          "description": "Base URL of the local orchestrator service."
+        },
+        "codemodStudio.analyzeOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Run the full agent pipeline on every save. Off by default because a refactor pass can take a minute on CPU."
+        },
+        "codemodStudio.metricsOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "Refresh complexity metrics on save. Cheap: no inference involved."
+        },
+        "codemodStudio.auditModel": {
+          "type": "string",
+          "default": "qwen2.5-coder:7b",
+          "description": "Ollama tag used by the security auditing agent."
+        },
+        "codemodStudio.refactorModel": {
+          "type": "string",
+          "default": "qwen2.5-coder:14b",
+          "description": "Ollama tag used by the refactoring agent."
+        },
+        "codemodStudio.complexityThreshold": {
+          "type": "number",
+          "default": 10,
+          "description": "Cyclomatic complexity at which a function is flagged in the editor."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/vscode": "^1.90.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
+    "typescript": "^5.5.0"
+  }
+}

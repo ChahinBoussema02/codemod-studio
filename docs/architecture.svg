@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 566" width="900" height="566" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" role="img" aria-label="Architecture of the Code Modernization and Security Studio: a VS Code extension talks to a FastAPI orchestrator running a four-node LangGraph pipeline, which calls a local Ollama runtime for inference and pushes metrics to a .NET telemetry service backed by PostgreSQL.">
+  <title>CodeMod Studio architecture</title>
+
+  <defs>
+    <!-- Mid-tone palette: legible on both GitHub light and dark backgrounds. -->
+    <style>
+      .box   { fill: none; stroke: #7d8590; stroke-width: 1.5; rx: 6; }
+      .accent{ stroke: #3b82f6; }
+      .warn  { stroke: #d29922; }
+      .ok    { stroke: #3fb950; }
+      .lbl   { fill: #7d8590; font-size: 12px; }
+      .hd    { fill: #58a6ff; font-size: 13px; font-weight: 600; }
+      .hd2   { fill: #7d8590; font-size: 11px; }
+      .node  { fill: #8b949e; font-size: 12px; font-weight: 600; }
+      .flow  { stroke: #7d8590; stroke-width: 1.4; fill: none; marker-end: url(#arrow); }
+      .flowd { stroke: #7d8590; stroke-width: 1.2; fill: none; stroke-dasharray: 4 3; marker-end: url(#arrow); }
+      .zone  { fill: none; stroke: #484f58; stroke-width: 1; stroke-dasharray: 3 4; rx: 8; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#7d8590"/>
+    </marker>
+  </defs>
+
+  <!-- ===== trust boundary ===== -->
+  <rect class="zone" x="12" y="12" width="876" height="478"/>
+  <text class="hd2" x="24" y="32">your machine — no source code crosses this boundary</text>
+
+  <!-- ===== client ===== -->
+  <rect class="box accent" x="30" y="60" width="180" height="104"/>
+  <text class="hd" x="46" y="84">VS Code extension</text>
+  <text class="lbl" x="46" y="104">TypeScript · webview</text>
+  <text class="lbl" x="46" y="122">Problems panel</text>
+  <text class="lbl" x="46" y="140">live SSE timeline</text>
+
+  <!-- ===== orchestrator ===== -->
+  <rect class="box accent" x="300" y="48" width="330" height="300"/>
+  <text class="hd" x="316" y="72">Orchestrator — FastAPI</text>
+  <text class="lbl" x="316" y="90">LangGraph state machine · Pydantic state</text>
+
+  <!-- graph nodes -->
+  <rect class="box ok" x="330" y="108" width="270" height="40"/>
+  <text class="node" x="346" y="126">1 · parse_ast</text>
+  <text class="lbl" x="346" y="141">CPython ast — signatures, complexity</text>
+
+  <rect class="box warn" x="330" y="164" width="270" height="52"/>
+  <text class="node" x="346" y="182">2 · security_audit</text>
+  <text class="lbl" x="346" y="197">deterministic rules  +  local LLM</text>
+  <text class="lbl" x="346" y="210">merged; agreement ⇒ hybrid finding</text>
+
+  <rect class="box warn" x="330" y="232" width="270" height="52"/>
+  <text class="node" x="346" y="250">3 · refactor</text>
+  <text class="lbl" x="346" y="265">proposals re-parsed before display;</text>
+  <text class="lbl" x="346" y="278">anything that fails to parse is dropped</text>
+
+  <rect class="box ok" x="330" y="300" width="270" height="34"/>
+  <text class="node" x="346" y="321">4 · report — risk score, grade</text>
+
+  <!-- node flow arrows -->
+  <path class="flow" d="M 465 148 L 465 162"/>
+  <path class="flow" d="M 465 216 L 465 230"/>
+  <path class="flow" d="M 465 284 L 465 298"/>
+
+  <!-- conditional skip edge -->
+  <path class="flowd" d="M 330 128 C 300 128 290 300 326 315"/>
+  <text class="lbl" x="226" y="214">no code,</text>
+  <text class="lbl" x="226" y="229">or nothing</text>
+  <text class="lbl" x="226" y="244">to fix:</text>
+  <text class="lbl" x="226" y="259">skip the</text>
+  <text class="lbl" x="226" y="274">LLM nodes</text>
+
+  <!-- ===== ollama ===== -->
+  <rect class="box warn" x="700" y="108" width="170" height="112"/>
+  <text class="hd" x="716" y="132">Ollama</text>
+  <text class="lbl" x="716" y="152">localhost:11434</text>
+  <text class="lbl" x="716" y="172">Qwen 2.5 Coder</text>
+  <text class="lbl" x="716" y="190">DeepSeek-R1</text>
+  <text class="lbl" x="716" y="208">JSON-schema decoding</text>
+
+  <!-- ===== client <-> orchestrator ===== -->
+  <path class="flow" d="M 210 96 L 296 96"/>
+  <text class="lbl" x="218" y="88">analyse</text>
+  <path class="flow" d="M 296 132 L 214 132"/>
+  <text class="lbl" x="214" y="150">findings · diffs</text>
+
+  <!-- ===== orchestrator <-> ollama ===== -->
+  <path class="flow" d="M 630 164 L 696 150"/>
+  <text class="lbl" x="638" y="140">source</text>
+  <path class="flow" d="M 696 196 L 634 240"/>
+  <text class="lbl" x="638" y="226">findings</text>
+
+  <!-- ===== telemetry ===== -->
+  <rect class="box" x="700" y="252" width="170" height="96"/>
+  <text class="hd" x="716" y="276">Telemetry — .NET 9</text>
+  <text class="lbl" x="716" y="296">minimal API · EF Core</text>
+  <text class="lbl" x="716" y="316">hashed path, counts,</text>
+  <text class="lbl" x="716" y="332">durations, token totals</text>
+
+  <path class="flow" d="M 630 318 L 696 310"/>
+  <text class="lbl" x="636" y="300">metrics only</text>
+
+  <!-- ===== postgres (outside the inner zone visually, still local) ===== -->
+  <rect class="box" x="700" y="412" width="170" height="54"/>
+  <text class="hd" x="716" y="436">PostgreSQL</text>
+  <text class="lbl" x="716" y="454">run history</text>
+  <path class="flow" d="M 785 348 L 785 408"/>
+
+  <!-- ===== legend ===== -->
+  <rect class="box ok" x="30" y="518" width="24" height="11"/>
+  <text class="hd2" x="64" y="528">deterministic and reproducible</text>
+  <rect class="box warn" x="306" y="518" width="24" height="11"/>
+  <text class="hd2" x="340" y="528">model-dependent — validated before it reaches you</text>
+</svg>

@@ -1,0 +1,5 @@
+{
+  "file_path": "samples/vulnerable.py",
+  "source_code": "import hashlib\nimport subprocess\n\nDB_PASSWORD = \"sup3rs3cret-prod-value\"\n\n\ndef run_report(user_input, cursor, mode=\"fast\"):\n    \"\"\"Build and run a report query.\"\"\"\n    if user_input:\n        if mode == \"fast\":\n            for row in range(10):\n                if row % 2 == 0:\n                    try:\n                        cursor.execute(\"SELECT * FROM t WHERE n = '\" + user_input + \"'\")\n                    except Exception:\n                        pass\n        elif mode == \"slow\":\n            subprocess.run(\"report \" + user_input, shell=True)\n        else:\n            return None\n    return hashlib.md5(user_input.encode()).hexdigest()\n",
+  "language": "python"
+}

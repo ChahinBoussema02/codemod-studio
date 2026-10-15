@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node / VS Code extension
+node_modules/
+out/
+*.vsix
+.vscode-test/
+
+# .NET
+bin/
+obj/
+*.user
+
+# Environment and local state
+.env
+.env.local
+*.db
+
+# Editors / OS
+.idea/
+.DS_Store
