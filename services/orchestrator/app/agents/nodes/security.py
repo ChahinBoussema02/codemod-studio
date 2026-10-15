@@ -73,7 +73,8 @@ def merge_findings(
     wording -- it is curated -- while the agreement raises confidence and the
     higher of the two severities is kept.
     """
-    merged: dict[tuple[str, int, str], SecurityFinding] = {}
+    # Keyed by SecurityFinding.dedupe_key(); the type follows that method.
+    merged: dict[tuple[str, int], SecurityFinding] = {}
 
     for finding in heuristic:
         merged[finding.dedupe_key()] = finding
