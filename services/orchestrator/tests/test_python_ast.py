@@ -248,15 +248,18 @@ def test_placeholder_secrets_are_not_reported() -> None:
     )
     assert scan_python(source, "c.py") == []
 
+
 def test_real_looking_secret_is_reported() -> None:
     (finding,) = scan_python('API_KEY = "sk-live-7f3a9c21b4e8"\n', "c.py")
     assert finding.rule_id == "PY-HARDCODED-SECRET"
     assert finding.cwe_id == "CWE-798"
     assert finding.line_start == 1
 
+
 def test_subprocess_without_shell_is_clean() -> None:
     source = 'import subprocess\nsubprocess.run(["ls", "-l"], check=True)\n'
     assert [f for f in scan_python(source, "c.py") if f.rule_id == "PY-SUBPROCESS-SHELL"] == []
+
 
 def _weak_hash_findings(source: str) -> list[str]:
     return [f.rule_id or "" for f in scan_python(source, "c.py") if f.rule_id == "PY-WEAK-HASH"]
