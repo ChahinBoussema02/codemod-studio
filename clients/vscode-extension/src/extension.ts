@@ -218,6 +218,17 @@ async function applyProposal(
     return;
   }
 
+  // Line numbers came from a run that may be a minute old. Verify the target
+  // is still where it was rather than splicing over whatever now occupies
+  // those lines.
+  const symbol = proposal.target_symbol.split('.').pop() ?? '';
+  const anchor = document.lineAt(Math.min(proposal.line_start - 1, document.lineCount - 1)).text;
+  if (!anchor.includes(`def ${symbol}`)) {
+    void vscode.window.showWarningMessage(
+      `${proposal.target_symbol} is no longer at line ${proposal.line_start}. Re-run the analysis before applying.`,
+    );
+    return;
+  }
   // The model returns a standalone definition at column zero; restore the
   // indentation of the line being replaced so a method stays inside its class.
   // Blank lines are left empty rather than filled with trailing whitespace.

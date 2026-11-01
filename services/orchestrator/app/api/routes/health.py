@@ -15,6 +15,7 @@ from app.schemas.api import HealthResponse
 
 router = APIRouter(tags=["health"])
 
+
 def _is_pulled(model: str, pulled: set[str]) -> bool:
     """Is ``model`` actually available on the Ollama host?
 

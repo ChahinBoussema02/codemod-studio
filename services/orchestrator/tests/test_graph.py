@@ -264,6 +264,30 @@ def test_merge_keeps_distinct_findings_apart() -> None:
     assert len(merged) == 2
 
 
+def test_merge_collapses_same_line_despite_disagreeing_cwe() -> None:
+    """Regression: an MD5 call reported twice with different CWEs.
+
+    A live 7B run produced CWE-327 (correct, heuristic) and CWE-789
+    (meaningless for Python, agent) for the same line. Keying the merge on
+    the CWE left both rows in the report.
+    """
+    heuristic = _finding(
+        title="Broken hash algorithm `md5`", cwe_id="CWE-327", severity=Severity.MEDIUM
+    )
+    agent = _finding(
+        title="Information Disclosure in Errors",
+        cwe_id="CWE-789",
+        severity=Severity.MEDIUM,
+        detector="llm",
+        confidence=1.0,
+    )
+
+    (merged,) = merge_findings([heuristic], [agent])
+
+    assert merged.cwe_id == "CWE-327", "the curated CWE must survive the merge"
+    assert merged.detector == "hybrid"
+
+
 def test_risk_score_saturates_and_orders_grades() -> None:
     low = AnalysisState(
         file_path="a.py", source_code="x=1\n", findings=[_finding(severity=Severity.LOW)]
@@ -339,3 +363,26 @@ def test_select_targets_is_capped_by_config() -> None:
         config=PipelineConfig(max_hotspots=3),
     )
     assert len(select_targets(state)) == 3
+
+
+async def test_proposal_only_claims_findings_it_was_shown(
+    opinionated_llm, vulnerable_source
+) -> None:
+    """Regression: `addresses_finding_ids` listed every finding in the function.
+
+    Matching on symbol swept in findings below the refactor threshold that
+    were never sent to the model, so the proposal claimed to fix issues it
+    had not seen.
+    """
+    final = await run_graph(opinionated_llm, make_state(vulnerable_source))
+    (proposal,) = final.proposals
+
+    claimed = set(proposal.addresses_finding_ids)
+    by_id = {f.id: f for f in final.findings}
+    threshold = final.config.min_severity_to_refactor.weight
+
+    assert claimed, "a refactor driven by findings should cite them"
+    assert all(by_id[finding_id].severity.weight >= threshold for finding_id in claimed), (
+        "must not claim findings below the severity threshold"
+    )
+    assert all(by_id[finding_id].symbol == proposal.target_symbol for finding_id in claimed)

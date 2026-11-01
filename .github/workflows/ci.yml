@@ -1,0 +1,110 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# A second push to the same branch cancels the first; CI minutes are finite.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  orchestrator:
+    name: Python orchestrator
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/orchestrator
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: services/orchestrator/pyproject.toml
+
+      - name: Install
+        run: pip install -e ".[dev]"
+
+      - name: Lint
+        run: |
+          ruff check .
+          ruff format --check .
+
+      - name: Type-check
+        run: mypy app
+
+      # The suite runs against a stubbed inference client, so no Ollama and
+      # no network access are required here.
+      - name: Test
+        run: pytest -q --cov=app --cov-report=term-missing
+
+      # Dogfooding: the complexity gate runs over the service's own source.
+      - name: Self-analysis gate
+        run: python scripts/analyze_file.py app --fail-over 15
+
+  telemetry:
+    name: .NET telemetry service
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/telemetry-api
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+  extension:
+    name: VS Code extension
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: clients/vscode-extension
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: clients/vscode-extension/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Compile
+        run: npm run compile
+
+  docker:
+    name: Container images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build orchestrator image
+        uses: docker/build-push-action@v6
+        with:
+          context: services/orchestrator
+          target: runtime
+          push: false
+
+      - name: Build telemetry image
+        uses: docker/build-push-action@v6
+        with:
+          context: services/telemetry-api
+          push: false

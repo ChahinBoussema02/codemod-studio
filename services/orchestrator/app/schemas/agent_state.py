@@ -288,10 +288,13 @@ class SecurityFinding(BaseModel):
 
     def dedupe_key(self) -> tuple[str, int]:
         """Two findings on the same line are treated as one issue.
-        The CWE deliberately plays no part: small models assign them
-        incorrectly often enough that keying on one splits a single issue
-        into two rows, which is worse than occasionally merging two
-        genuinely distinct issues that share a line.
+
+        The CWE deliberately plays no part. Local models assign CWE
+        identifiers incorrectly often enough that including one splits a
+        single real issue into two rows -- observed in practice with an MD5
+        call reported once as CWE-327 (correct) and once as CWE-789
+        (meaningless here). Occasionally merging two genuinely distinct
+        issues that share a line is the cheaper error.
         """
         return (self.file_path, self.line_start)
 
