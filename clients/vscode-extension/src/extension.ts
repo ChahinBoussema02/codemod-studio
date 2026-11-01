@@ -232,7 +232,7 @@ async function applyProposal(
   // The model returns a standalone definition at column zero; restore the
   // indentation of the line being replaced so a method stays inside its class.
   // Blank lines are left empty rather than filled with trailing whitespace.
-  const indent = document.lineAt(proposal.line_start - 1).text.match(/^\s*/)?.[0] ?? '';
+  const indent = anchor.match(/^\s*/)?.[0] ?? '';
   const reindented = proposal.proposed_code
     .split('\n')
     .map((line) => (line.trim() === '' ? '' : indent + line))

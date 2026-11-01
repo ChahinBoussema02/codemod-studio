@@ -163,7 +163,13 @@ class _PythonSecurityVisitor(ast.NodeVisitor):
                 )
             )
 
-        if name.startswith("hashlib.") and name.split(".")[-1] in self._WEAK_HASHES:
+        if (
+            name.startswith("hashlib.")
+            and name.split(".")[-1] in self._WEAK_HASHES
+            # The remediation suggests this flag; honour it rather than
+            # flagging code that followed the advice.
+            and not _is_false(_keyword(node, "usedforsecurity"))
+        ):
             algorithm = name.split(".")[-1]
             self.hits.append(
                 _Hit(

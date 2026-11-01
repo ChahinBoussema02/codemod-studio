@@ -248,17 +248,51 @@ def test_placeholder_secrets_are_not_reported() -> None:
     )
     assert scan_python(source, "c.py") == []
 
-
 def test_real_looking_secret_is_reported() -> None:
     (finding,) = scan_python('API_KEY = "sk-live-7f3a9c21b4e8"\n', "c.py")
     assert finding.rule_id == "PY-HARDCODED-SECRET"
     assert finding.cwe_id == "CWE-798"
     assert finding.line_start == 1
 
-
 def test_subprocess_without_shell_is_clean() -> None:
     source = 'import subprocess\nsubprocess.run(["ls", "-l"], check=True)\n'
     assert [f for f in scan_python(source, "c.py") if f.rule_id == "PY-SUBPROCESS-SHELL"] == []
+
+def _weak_hash_findings(source: str) -> list[str]:
+    return [f.rule_id or "" for f in scan_python(source, "c.py") if f.rule_id == "PY-WEAK-HASH"]
+
+
+def test_weak_hash_is_reported_by_default() -> None:
+    assert _weak_hash_findings("import hashlib\nhashlib.md5(data).hexdigest()\n")
+    assert _weak_hash_findings("import hashlib\nhashlib.sha1(data).hexdigest()\n")
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        "import hashlib\nhashlib.md5(data, usedforsecurity=False)\n",
+        "import hashlib\nhashlib.sha1(data, usedforsecurity=False).hexdigest()\n",
+        # Keyword order must not matter.
+        "import hashlib\nhashlib.md5(usedforsecurity=False, string=data)\n",
+    ],
+)
+def test_weak_hash_honours_its_own_remediation(source: str) -> None:
+    """Regression: the rule flagged code that had followed its advice.
+
+    PY-WEAK-HASH's remediation says to pass ``usedforsecurity=False`` for a
+    non-security hash. Reporting that call anyway makes the finding
+    impossible to resolve, which trains users to ignore the rule.
+    """
+    assert _weak_hash_findings(source) == []
+
+
+def test_weak_hash_still_reported_when_flag_is_true() -> None:
+    """``usedforsecurity=True`` is an explicit security use -- still a finding."""
+    assert _weak_hash_findings("import hashlib\nhashlib.md5(data, usedforsecurity=True)\n")
+
+
+def test_strong_hash_is_never_reported() -> None:
+    assert _weak_hash_findings("import hashlib\nhashlib.sha256(data).hexdigest()\n") == []
 
 
 def test_findings_are_attributed_to_their_enclosing_function(vulnerable_source: str) -> None:
